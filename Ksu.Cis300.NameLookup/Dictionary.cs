@@ -29,6 +29,89 @@ namespace Ksu.Cis300.NameLookup
         public TreeForm Drawing => new TreeForm(_elements, 100);
 
         /// <summary>
+        /// Removes the node with the smallest key
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="min"></param>
+        /// <returns> the result of removing the node with smallest key</returns>
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> RemoveMininumKey(BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out KeyValuePair<TKey, TValue> min) // RemoveMinimum Key, you're stepping as far left as you can, you don't just want to return the result, you should create a new tree 
+        {
+            if (t.LeftChild != null)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newLeft = RemoveMininumKey(t.LeftChild, out min);
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newTree = new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, newLeft, t.RightChild);
+                return newTree;
+            }
+            else
+            {
+                min = t.Data;
+                return t.RightChild;
+            }
+        }
+
+        /// <summary>
+        /// Removes the node containing the given key from t
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="t"></param>
+        /// <param name="removed"></param>
+        /// <returns>the result of removing the node containing the given key from the given tree</returns>
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> Remove(TKey key, BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out bool removed)
+        {
+            if (t == null)
+            {
+                removed = false;
+                return t;
+            }
+            else if (t.Data.Key.CompareTo(key) < 0) //
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> rightUpdate = Remove(key, t.RightChild, out removed);
+                return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, t.LeftChild, rightUpdate);
+            }
+            else if (t.Data.Key.CompareTo(key) > 0)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> leftUpdate = Remove(key, t.LeftChild, out removed);
+                return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, leftUpdate, t.RightChild);
+            }
+            else
+            {
+                removed = true;
+                if (t.RightChild == null && t.LeftChild == null)
+                {
+                    return null;
+                }
+                else if (t.RightChild == null && t.LeftChild != null)
+                {
+                    return t.LeftChild;
+                }
+                else if (t.LeftChild == null && t.RightChild != null)
+                {
+                    return t.RightChild;
+                }
+                else
+                {
+                    KeyValuePair<TKey, TValue> min;
+                    BinaryTreeNode<KeyValuePair<TKey, TValue>> updatedRight = RemoveMininumKey(t.RightChild, out min);
+                    return new BinaryTreeNode<KeyValuePair<TKey, TValue>>(min, t.LeftChild, updatedRight);
+                }
+            }
+        }
+
+        /// <summary>
+        ///  remove the given key and its associated value from the dictionary using Remove
+        /// </summary>
+        /// <param name="k"></param>
+        /// <returns>whether or not the given key was removed</returns>
+        public bool Remove(TKey k)
+        {
+            CheckKey(k);
+            bool removed;
+            BinaryTreeNode<KeyValuePair<TKey, TValue>> t = Remove(k, _elements, out removed);
+            _elements = t;
+            return removed;
+        }
+
+        /// <summary>
         /// Checks to see if the given key is null, and if so, throws an
         /// ArgumentNullException.
         /// </summary>
